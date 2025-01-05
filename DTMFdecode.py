@@ -31,6 +31,32 @@ def bandpass_filter(data, sample_rate):
     data = highpass_filter(data, sample_rate, cutoff=650)
     return lowpass_filter(data, sample_rate, cutoff=1700)
 
+# Detect silent regions to segment tones
+def detect_silent_regions(data, sample_rate, threshold=0.02, min_silence_duration=0.1):
+    """Detect silent regions in the audio based on amplitude."""
+    abs_data = np.abs(data)
+    silence_threshold = threshold * np.max(abs_data)
+    silence_samples = int(min_silence_duration * sample_rate)
+    
+    silent_regions = []
+    is_silent = False
+    start_idx = 0
+    
+    for i, value in enumerate(abs_data):
+        if value < silence_threshold:
+            if not is_silent:
+                is_silent = True
+                start_idx = i
+        else:
+            if is_silent and i - start_idx >= silence_samples:
+                silent_regions.append((start_idx, i))
+            is_silent = False
+    
+    if is_silent and len(data) - start_idx >= silence_samples:
+        silent_regions.append((start_idx, len(data)))
+    
+    return silent_regions
+
 def decode_dtmf(filename, visualize=False):
     # Read the audio file
     sample_rate, data = read(filename)
@@ -42,54 +68,33 @@ def decode_dtmf(filename, visualize=False):
     # Apply band-pass filter to isolate DTMF-relevant frequencies
     data = bandpass_filter(data, sample_rate)
 
-    n = len(data)
-    winlen = int(0.1 * sample_rate)  # Window length
-    winstep = winlen // 2           # Overlap by half window size
+    # Detect silent regions
+    silent_regions = detect_silent_regions(data, sample_rate)
+
+    # Segment audio into tones using silence gaps
     detected_digits = []
+    start_idx = 0
+    for silent_start, silent_end in silent_regions:
+        tone_segment = data[start_idx:silent_start]
+        start_idx = silent_end
 
-    if visualize:
-        plt.figure(figsize=(12, 6))
+        if len(tone_segment) < int(0.05 * sample_rate):  # Ignore short segments
+            continue
 
-    for idx, i in enumerate(range(0, n - winlen, winstep)):
-        # Extract a window of data
-        windata = data[i:i + winlen]
-        windata = windata - np.mean(windata)  # Remove residual DC offset
-
-        # Compute FFT for the window
-        fft_data = np.abs(np.fft.rfft(windata))
-        freqs = np.fft.rfftfreq(len(windata), d=1/sample_rate)
+        # Compute FFT for the tone segment
+        fft_data = np.abs(np.fft.rfft(tone_segment))
+        freqs = np.fft.rfftfreq(len(tone_segment), d=1/sample_rate)
 
         # Detect peaks
-        peaks, _ = find_peaks(fft_data, height=0.50 * np.max(fft_data))  # Adjust threshold
+        peaks, _ = find_peaks(fft_data, height=0.50 * np.max(fft_data))
         detected_freqs = freqs[peaks]
 
-        # Check for pairs of frequencies corresponding to DTMF tones
+        # Match frequencies to DTMF tones
         for digit, (f1, f2) in dtmf_freqs.items():
             if (np.any(np.isclose(detected_freqs, f1, atol=10)) and
                     np.any(np.isclose(detected_freqs, f2, atol=10))):
-                if not detected_digits or detected_digits[-1] != digit:
-                    detected_digits.append(digit)
-
-        # Visualize the current window and its FFT if visualization is enabled
-        if visualize:
-            plt.subplot(2, 1, 1)
-            plt.plot(windata, label=f"Window {idx + 1}")
-            plt.xlabel("Samples")
-            plt.ylabel("Amplitude")
-            plt.legend()
-
-            plt.subplot(2, 1, 2)
-            plt.plot(freqs, fft_data, label=f"FFT {idx + 1}")
-            plt.scatter(freqs[peaks], fft_data[peaks], color='red', label="Peaks")
-            plt.xlabel("Frequency (Hz)")
-            plt.ylabel("Magnitude")
-            plt.legend()
-
-            plt.pause(0.5)  # Pause for half a second to visualize each step
-            plt.clf()
-
-    if visualize:
-        plt.close()
+                detected_digits.append(digit)
+                break
 
     return detected_digits
 
@@ -112,6 +117,8 @@ if __name__ == "__main__":
             filename = sys.argv[1]
             try:
                 decoded_digits = decode_dtmf(filename, visualize)
-                print("Detected DTMF Tones:", "".join(decoded_digits))
+                #print("Detected DTMF Tones:", "".join(decoded_digits))
+                print("".join(decoded_digits))
             except Exception as e:
                 print(f"Error decoding file: {e}")
+
