@@ -1,11 +1,6 @@
-rm qrout.png
+rm dtmf.wav
 python3 get_input.py > otp_input.txt
 
-ENCODED_INPUT=$(python3 otp_crypto2.py otp_input.txt)
+ENCODED_INPUT=$(./encode.sh "$(cat otp_input.txt)" dtmf.wav 0.1)
 
-#echo xxx > otp_input.txt
-#rm otp_input.txt
-
-python3 qrencode.py $ENCODED_INPUT qrout.png
-#./qrencode.py \"$(./otp_crypto2.py $(./get_input.py))\" qrout.png
-open qrout.png
+echo $ENCODED_INPUT > encoded.txt
