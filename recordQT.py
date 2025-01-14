@@ -18,6 +18,7 @@ class AudioRecorder(QDialog):
         self.fs = 44100  # Sampling frequency
         self.recording = False
         self.audio_data = []  # To store recorded audio
+        self.stream = None
         self.timer = QTimer()
         self.timer.timeout.connect(self.stop_recording)  # Stop recording after 30 seconds
 
@@ -36,7 +37,6 @@ class AudioRecorder(QDialog):
         self.slider.setMinimum(0)
         self.slider.setMaximum(30000)  # 30 seconds in milliseconds
         self.slider.setValue(0)
-        self.slider.setTickInterval(1000)  # 1 second interval
         self.slider.sliderMoved.connect(self.slider_moved)
 
         # Buttons
@@ -85,9 +85,10 @@ class AudioRecorder(QDialog):
         if self.recording:
             self.recording = False
             self.timer.stop()
-            if hasattr(self, "stream"):
+            if self.stream:
                 self.stream.stop()
                 self.stream.close()
+                self.stream = None
             print("Recording stopped.")
 
         if self.playing:
