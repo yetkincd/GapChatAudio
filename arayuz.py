@@ -1,5 +1,5 @@
 import sys 
-from PyQt5 import QtWidgets,QtGui,QtTest
+from PyQt5 import QtWidgets,QtGui,QtTest,QtCore
 import os
 def encode():
     os.popen('/usr/bin/bash otp_encode.sh')
@@ -10,15 +10,25 @@ def generate():
     
 app=QtWidgets.QApplication(sys.argv)
 win=QtWidgets.QWidget()
-win.setWindowTitle("arayüz")
+win.setWindowTitle("GapChatAudio Arayüzü")
 
 button1=QtWidgets.QPushButton(win)
 button2=QtWidgets.QPushButton(win)
 button3=QtWidgets.QPushButton(win)
 
-button1.setText("mesaj oluştur")
-button2.setText("mesaj çöz")
-button3.setText("anahtar yarat")
+button1.setText("Gizli Mesaj Gir")
+button1.setFont(QtGui.QFont('Arial', 20))
+button1.setIcon(QtGui.QIcon("images/speaker.svg"))
+button2.setText("Gizli Mesaj Çöz")
+button2.setFont(QtGui.QFont('Arial', 20))
+button2.setIcon(QtGui.QIcon("images/mic.svg"))
+button3.setText("Anahtar Yarat")
+button3.setFont(QtGui.QFont('Arial', 20))
+button3.setIcon(QtGui.QIcon("images/key.svg"))
+
+button1.setIconSize(QtCore.QSize(64, 64))
+button2.setIconSize(QtCore.QSize(64, 64))
+button3.setIconSize(QtCore.QSize(64, 64))
         
 button1.clicked.connect(encode)
 button2.clicked.connect(decode)
