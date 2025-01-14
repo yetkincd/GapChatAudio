@@ -1,4 +1,5 @@
 import sys
+import threading
 from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSlider
 from PyQt5.QtCore import Qt, QTimer
 import sounddevice as sd
@@ -77,9 +78,15 @@ class AudioRecorder(QDialog):
                 channels=1,
                 callback=self.audio_callback
             )
-            self.stream.start()
+            # Start the recording in a separate thread
+            self.recording_thread = threading.Thread(target=self.start_stream)
+            self.recording_thread.start()
+
             self.update_slider_during_recording()
             print("Recording started...")
+
+    def start_stream(self):
+        self.stream.start()
 
     def stop_recording(self):
         if self.recording:
