@@ -99,6 +99,8 @@ class AudioRecorder(QDialog):
         if self.audio_data:
             # Combine all recorded audio chunks
             audio_array = np.concatenate(self.audio_data, axis=0)
+            # Scale from [-1.0, 1.0] to 16-bit integer range [-32768, 32767]
+            audio_array = (audio_array * 32767).astype(np.int16)
             # Save to a WAV file
             with wave.open("dtmf.wav", "w") as wf:
                 wf.setnchannels(1)  # Mono
@@ -155,7 +157,6 @@ class AudioRecorder(QDialog):
                 self.playback_obj = sa.play_buffer(self.audio_wave, 1, 2, self.fs)
                 self.playing = True
                 self.playback_timer.start(10)
-
 
     def audio_callback(self, indata, frames, time, status):
         if self.recording:
