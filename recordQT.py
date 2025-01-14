@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSlider
 from PyQt5.QtCore import Qt, QTimer
 import sounddevice as sd
 import numpy as np
@@ -29,41 +29,39 @@ class AudioRecorder(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Audio Recorder")
-        self.setGeometry(100, 100, 480, 300)
+        self.setGeometry(100, 100, 480, 150)
 
-        # Slider with labels
+        # Slider
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setMinimum(0)
         self.slider.setMaximum(30000)  # 30 seconds in milliseconds
         self.slider.setValue(0)
         self.slider.setTickInterval(1000)  # 1 second interval
-        self.slider.setTickPosition(QSlider.TicksBelow)
         self.slider.sliderMoved.connect(self.slider_moved)
-
-        self.slider_label = QLabel("0 sec | ... | 30 sec")
-        self.slider_label.setAlignment(Qt.AlignCenter)
 
         # Buttons
         self.record_button = QPushButton("Record")
         self.stop_button = QPushButton("Stop")
         self.save_button = QPushButton("Save")
         self.play_button = QPushButton("Play")
+        self.close_button = QPushButton("Close")
 
         self.record_button.clicked.connect(self.start_recording)
         self.stop_button.clicked.connect(self.stop_recording)
         self.save_button.clicked.connect(self.save_audio)
         self.play_button.clicked.connect(self.play_audio)
+        self.close_button.clicked.connect(self.close)
 
         # Layouts
         layout = QVBoxLayout()
         layout.addWidget(self.slider)
-        layout.addWidget(self.slider_label)
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.record_button)
         button_layout.addWidget(self.stop_button)
         button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.play_button)
+        button_layout.addWidget(self.close_button)
 
         layout.addLayout(button_layout)
         self.setLayout(layout)
