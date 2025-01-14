@@ -1,5 +1,4 @@
 import sys
-
 import numpy as np
 from scipy.io.wavfile import write
 
@@ -12,7 +11,7 @@ dtmf_freqs = {
 }
 
 # Generate DTMF tone
-def generate_dtmf_tone(digits, duration=0.4, sample_rate=44100):
+def generate_dtmf_tone(digits, duration=1.0, sample_rate=44100):
     """
     Generate DTMF tones for a given string of digits.
 
@@ -33,29 +32,29 @@ def generate_dtmf_tone(digits, duration=0.4, sample_rate=44100):
         f1, f2 = dtmf_freqs[digit]
         tone = np.sin(2 * np.pi * f1 * t) + np.sin(2 * np.pi * f2 * t)
         signal = np.concatenate((signal, tone))
-        silence = np.zeros(int(sample_rate * duration))  # Add short silence between tones
+        silence = np.zeros(int(sample_rate * duration))  # Add 10% silence between tones
         signal = np.concatenate((signal, silence))
 
     return np.int16(signal / np.max(np.abs(signal)) * 32767)  # Normalize to 16-bit PCM
 
 # Save DTMF tones to a WAV file
-def save_to_wav(filename, digits):
+def save_to_wav(filename, digits, duration):
     """
     Generate and save DTMF tones to a WAV file.
 
     Parameters:
     - filename: str, name of the WAV file to save.
     - digits: str, string of digits to convert to DTMF tones.
+    - duration: float, duration of each tone in seconds.
     """
     sample_rate = 44100
-    dtmf_signal = generate_dtmf_tone(digits, sample_rate=sample_rate)
+    dtmf_signal = generate_dtmf_tone(digits, duration=duration, sample_rate=sample_rate)
     write(filename, sample_rate, dtmf_signal)  # Save as WAV
     print(f"DTMF tones saved to {filename}")
 
-
 def print_usage():
-    print(sys.argv[0],"DIGITS filename")
-    print("example: ",sys.argv[0],"123 123.wav")
+    print(f"Usage: {sys.argv[0]} DIGITS filename [pulse_length]")
+    print("Example: ", sys.argv[0], "123 123.wav 0.5")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -63,4 +62,5 @@ if __name__ == "__main__":
     else:
         digits = sys.argv[1]
         filename = sys.argv[2]
-        save_to_wav(filename, digits)
+        pulse_length = float(sys.argv[3]) if len(sys.argv) > 3 else 1.0  # Default duration is 1 second
+        save_to_wav(filename, digits, pulse_length)
