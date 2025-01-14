@@ -13,8 +13,12 @@ def sh_escape(s):
     return s.replace("(", "\\(").replace(")", "\\)").replace(" ", "\\ ")
 
 def gui_input(prompt):
+    def play_and_close():
+        play()
+        root.destroy()
+
     root = tk.Tk()
-    w = 600  # width for the Tk root
+    w = 480  # width for the Tk root
     h = 150  # keep the original height
 
     # Get screen width and height
@@ -42,9 +46,11 @@ def gui_input(prompt):
     entry.pack(side="right", fill="x", padx=(0, 20), pady=20, expand=True)
 
     # Create and place the play button at the bottom
-    play_button = tk.Button(frame, text="Şifrelenmiş Sesi Çal", font=("Helvetica", 16), command=play)
+    play_button = tk.Button(frame, text="Şifrelenmiş Sesi Çal", font=("Helvetica", 16), command=play_and_close)
     play_button.pack(side="bottom", pady=10)
 
+    # Let the user press the return key to destroy the gui 
+    entry.bind("<Return>", lambda event: root.destroy())
 
     # This will block until the window is destroyed
     root.mainloop()
