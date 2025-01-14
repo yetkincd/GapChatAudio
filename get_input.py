@@ -6,15 +6,12 @@ import os
 w = 800  # width for the Tk root
 h = 100  # height for the Tk root
 
-def play():
-    os.popen('/usr/bin/bash playsound.sh')
 
 def sh_escape(s):
     return s.replace("(", "\\(").replace(")", "\\)").replace(" ", "\\ ")
 
 def gui_input(prompt):
     def play_and_close():
-        play()
         root.destroy()
 
     root = tk.Tk()
